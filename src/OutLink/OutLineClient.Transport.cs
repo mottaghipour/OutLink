@@ -5,7 +5,7 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace OutLink;
 
-public sealed partial class OutLink
+public sealed partial class OutLineClient
 {
     private static JsonContent Json<T>(T value, JsonTypeInfo<T> type) => JsonContent.Create(value, type);
 

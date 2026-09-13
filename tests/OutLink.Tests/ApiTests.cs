@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Client = global::OutLink.OutLink;
 
 namespace OutLink.Tests;
 
@@ -444,8 +443,8 @@ public class ApiTests
         }
     }
 
-    private static Client NoRequests() => Create((_, _) => throw new Xunit.Sdk.XunitException("No request expected."));
-    private static Client Create(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) =>
+    private static OutLineClient NoRequests() => Create((_, _) => throw new Xunit.Sdk.XunitException("No request expected."));
+    private static OutLineClient Create(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) =>
         new(new HttpClient(new StubHandler(send)) { BaseAddress = new Uri("https://example.com/secret/") });
     private static HttpResponseMessage Response(string? body, HttpStatusCode status = HttpStatusCode.OK) =>
         new(status) { Content = body is null ? null : new StringContent(body, Encoding.UTF8, "application/json") };
@@ -454,7 +453,7 @@ public class ApiTests
             System.Text.Json.Nodes.JsonNode.Parse(expected), System.Text.Json.Nodes.JsonNode.Parse(actual)), actual);
 
 #pragma warning disable CS0618 // The deprecated endpoints are intentionally covered.
-    private static Task Invoke(Client client, string operation, CancellationToken token = default) => operation switch
+    private static Task Invoke(OutLineClient client, string operation, CancellationToken token = default) => operation switch
     {
         "server" => client.GetServerAsync(token),
         "hostname" => client.SetHostnameForAccessKeysAsync("vpn.example.com", token),

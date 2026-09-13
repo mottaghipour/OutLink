@@ -3,11 +3,11 @@ using System.Security.Cryptography;
 namespace OutLink;
 
 /// <summary>Owns an isolated client for an Outline server's management API.</summary>
-public sealed partial class OutLink : IDisposable
+public sealed partial class OutLineClient : IDisposable
 {
     private readonly HttpClientHandler? _handler;
 
-    private OutLink(Uri apiUrl, byte[] certificateFingerprint)
+    private OutLineClient(Uri apiUrl, byte[] certificateFingerprint)
     {
         _handler = new HttpClientHandler
         {
@@ -25,7 +25,7 @@ public sealed partial class OutLink : IDisposable
     }
 
     // The test assembly supplies an in-memory transport without exposing a public bypass of TLS pinning.
-    internal OutLink(HttpClient httpClient) => HttpClient = httpClient;
+    internal OutLineClient(HttpClient httpClient) => HttpClient = httpClient;
 
     /// <summary>
     /// Gets the owned client. Use relative API paths such as "access-keys".
@@ -34,7 +34,7 @@ public sealed partial class OutLink : IDisposable
     public HttpClient HttpClient { get; }
 
     /// <summary>Creates a client using an HTTPS API URL and Outline's certSha256 hex fingerprint.</summary>
-    public static OutLink New(string apiUrl, string cert)
+    public static OutLineClient New(string apiUrl, string cert)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiUrl);
         ArgumentException.ThrowIfNullOrWhiteSpace(cert);
@@ -53,7 +53,7 @@ public sealed partial class OutLink : IDisposable
 
         // Preserve Outline's secret authentication path when resolving relative endpoints.
         var baseAddress = new Uri(uri.AbsoluteUri.TrimEnd('/') + "/");
-        return new OutLink(baseAddress, Convert.FromHexString(cert));
+        return new OutLineClient(baseAddress, Convert.FromHexString(cert));
     }
 
     /// <summary>Disposes the client and its underlying handler.</summary>

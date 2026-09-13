@@ -2,11 +2,10 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Client = global::OutLink.OutLink;
 
 namespace OutLink.Tests;
 
-public class OutLinkTests
+public class OutLineClientTests
 {
     private static readonly string Fingerprint = new('a', 64);
 
@@ -15,7 +14,7 @@ public class OutLinkTests
     [InlineData("https://example.com:1234/secret/")]
     public void New_PreservesAuthenticationPathForRelativeEndpoints(string apiUrl)
     {
-        using var client = Client.New(apiUrl, Fingerprint);
+        using var client = OutLineClient.New(apiUrl, Fingerprint);
 
         Assert.Equal(new Uri("https://example.com:1234/secret/access-keys"),
             new Uri(client.HttpClient.BaseAddress!, "access-keys"));
@@ -24,8 +23,8 @@ public class OutLinkTests
     [Fact]
     public async Task New_CreatesIndependentClientsAndLifetimes()
     {
-        using var first = Client.New("https://example.com/first", Fingerprint);
-        using var second = Client.New("https://example.com/second", Fingerprint);
+        using var first = OutLineClient.New("https://example.com/first", Fingerprint);
+        using var second = OutLineClient.New("https://example.com/second", Fingerprint);
 
         Assert.NotSame(first.HttpClient, second.HttpClient);
         first.HttpClient.DefaultRequestHeaders.Add("X-Test", "first");
@@ -50,7 +49,7 @@ public class OutLinkTests
     [InlineData("https://example.com/secret#fragment")]
     public void New_RejectsInvalidApiUrls(string? apiUrl)
     {
-        var exception = Assert.ThrowsAny<ArgumentException>(() => Client.New(apiUrl!, Fingerprint));
+        var exception = Assert.ThrowsAny<ArgumentException>(() => OutLineClient.New(apiUrl!, Fingerprint));
         Assert.Equal("apiUrl", exception.ParamName);
     }
 
@@ -60,7 +59,7 @@ public class OutLinkTests
     [InlineData(" ")]
     public void New_RejectsMissingFingerprints(string? cert)
     {
-        var exception = Assert.ThrowsAny<ArgumentException>(() => Client.New("https://example.com/secret", cert!));
+        var exception = Assert.ThrowsAny<ArgumentException>(() => OutLineClient.New("https://example.com/secret", cert!));
         Assert.Equal("cert", exception.ParamName);
     }
 
@@ -71,7 +70,7 @@ public class OutLinkTests
     public void New_RejectsMalformedFingerprints(char character, int length)
     {
         var exception = Assert.Throws<ArgumentException>(() =>
-            Client.New("https://example.com/secret", new string(character, length)));
+            OutLineClient.New("https://example.com/secret", new string(character, length)));
         Assert.Equal("cert", exception.ParamName);
     }
 
@@ -82,7 +81,7 @@ public class OutLinkTests
     {
         using var certificate = CreateCertificate();
         var fingerprint = certificate.GetCertHashString(HashAlgorithmName.SHA256);
-        using var client = Client.New("https://example.com/secret",
+        using var client = OutLineClient.New("https://example.com/secret",
             lowercase ? fingerprint.ToLowerInvariant() : fingerprint);
         using var message = new HttpRequestMessage();
 
@@ -98,7 +97,7 @@ public class OutLinkTests
         using var certificate = CreateCertificate();
         var fingerprint = certificate.GetCertHash(HashAlgorithmName.SHA256);
         fingerprint[0] ^= 0xff;
-        using var client = Client.New("https://example.com/secret", Convert.ToHexString(fingerprint));
+        using var client = OutLineClient.New("https://example.com/secret", Convert.ToHexString(fingerprint));
         using var message = new HttpRequestMessage();
 
         Assert.False(Handler(client).ServerCertificateCustomValidationCallback!(
@@ -108,7 +107,7 @@ public class OutLinkTests
     [Fact]
     public void CertificateValidation_RejectsMissingCertificate()
     {
-        using var client = Client.New("https://example.com/secret", Fingerprint);
+        using var client = OutLineClient.New("https://example.com/secret", Fingerprint);
         using var message = new HttpRequestMessage();
 
         Assert.False(Handler(client).ServerCertificateCustomValidationCallback!(
@@ -118,7 +117,7 @@ public class OutLinkTests
     [Fact]
     public void New_DisablesRedirectsAndCookies()
     {
-        using var client = Client.New("https://example.com/secret", Fingerprint);
+        using var client = OutLineClient.New("https://example.com/secret", Fingerprint);
 
         Assert.False(Handler(client).AllowAutoRedirect);
         Assert.False(Handler(client).UseCookies);
@@ -127,9 +126,9 @@ public class OutLinkTests
     [Fact]
     public void PublicApi_ExposesOnlyReadOnlyClientAndNoPublicConstructorOrFields()
     {
-        Assert.Empty(typeof(Client).GetConstructors());
-        Assert.Empty(typeof(Client).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
-        var property = Assert.Single(typeof(Client).GetProperties());
+        Assert.Empty(typeof(OutLineClient).GetConstructors());
+        Assert.Empty(typeof(OutLineClient).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
+        var property = Assert.Single(typeof(OutLineClient).GetProperties());
         Assert.Equal("HttpClient", property.Name);
         Assert.Null(property.SetMethod);
     }
@@ -144,6 +143,6 @@ public class OutLinkTests
     }
 
     // Exercise TLS validation directly to keep these unit tests independent of network I/O.
-    private static HttpClientHandler Handler(Client client) => (HttpClientHandler)typeof(Client)
+    private static HttpClientHandler Handler(OutLineClient client) => (HttpClientHandler)typeof(OutLineClient)
         .GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(client)!;
 }

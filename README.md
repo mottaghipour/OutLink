@@ -23,7 +23,7 @@ The library targets **.NET 10** and uses only built-in .NET APIs. It implements 
 
 ## Features
 
-- An independent `HttpClient` and certificate pin for each `OutLink` instance.
+- An independent `HttpClient` and certificate pin for each `OutLineClient` instance.
 - HTTPS server verification using Outline's SHA-256 certificate fingerprint.
 - Typed request options and response models.
 - Asynchronous operations with cancellation support.
@@ -62,17 +62,17 @@ This creates a package locally; it does not publish it to a feed.
 
 ### First request
 
-The class and namespace are both named `OutLink`. The following alias keeps client construction concise:
+Import the `OutLink` namespace and create an `OutLineClient`:
 
 ```csharp
-using OutlineClient = OutLink.OutLink;
+using OutLink;
 
 var apiUrl = Environment.GetEnvironmentVariable("OUTLINE_API_URL")
     ?? throw new InvalidOperationException("OUTLINE_API_URL is missing.");
 var certSha256 = Environment.GetEnvironmentVariable("OUTLINE_CERT_SHA256")
     ?? throw new InvalidOperationException("OUTLINE_CERT_SHA256 is missing.");
 
-using var outline = OutlineClient.New(apiUrl, certSha256);
+using var outline = OutLineClient.New(apiUrl, certSha256);
 
 var server = await outline.GetServerAsync();
 Console.WriteLine($"Server: {server.Name}, version: {server.Version}");
@@ -85,7 +85,9 @@ The following examples assume an initialized `outline` instance. Add `using OutL
 ## Connection and client configuration
 
 ```csharp
-using var outline = OutLink.OutLink.New(apiUrl, certSha256);
+using OutLink;
+
+using var outline = OutLineClient.New(apiUrl, certSha256);
 outline.HttpClient.Timeout = TimeSpan.FromSeconds(30);
 ```
 
@@ -96,7 +98,7 @@ outline.HttpClient.Timeout = TimeSpan.FromSeconds(30);
 
 Construction validates the arguments and creates the HTTP client; it does not contact the server. TLS verification happens when a request is sent. The configured pin must match the server certificate's SHA-256 fingerprint, including when that certificate is self-signed. Authentication uses the secret path already present in the management URL; no bearer token is required by this client.
 
-Reuse an instance across requests so its HTTP connections can be pooled. Concurrent API calls are supported. Configure the exposed client before sending requests, and dispose the `OutLink` instance only after its outstanding operations finish. Disposing it also disposes its HTTP client and handler. Create separate instances to manage separate servers.
+Reuse an instance across requests so its HTTP connections can be pooled. Concurrent API calls are supported. Configure the exposed client before sending requests, and dispose the `OutLineClient` instance only after its outstanding operations finish. Disposing it also disposes its HTTP client and handler. Create separate instances to manage separate servers.
 
 There are no public URL or certificate properties. However, the exposed `HttpClient.BaseAddress` contains the API URL, including its secret path. Treat it as a credential. Access-key `Password` and `AccessUrl` values also contain credentials.
 
@@ -391,16 +393,16 @@ The library has no third-party package dependencies. The test project uses its e
 OutLink.slnx
 src/
   OutLink/
-    OutLink.cs                Instance creation, certificate pinning, and lifetime
-    OutLink.Api.cs            Public API methods and request validation
-    OutLink.Transport.cs      Shared HTTP and response handling
+    OutLineClient.cs                Instance creation, certificate pinning, and lifetime
+    OutLineClient.Api.cs            Public API methods and request validation
+    OutLineClient.Transport.cs      Shared HTTP and response handling
     OutLinkJsonContext.cs     Source-generated JSON metadata and internal payloads
     Models.cs                 Public request and response models
     OutLinkApiException.cs    API error details
     AssemblyInfo.cs           Internal access for the unit-test assembly
 tests/
   OutLink.Tests/
-    OutLinkTests.cs           Client configuration and certificate tests
+    OutLineClientTests.cs           Client configuration and certificate tests
     ApiTests.cs               API and transport unit tests
 ```
 

@@ -1,6 +1,6 @@
 namespace OutLink;
 
-public sealed partial class OutLink
+public sealed partial class OutLineClient
 {
     /// <summary>Gets the server configuration.</summary>
     public Task<Server> GetServerAsync(CancellationToken cancellationToken = default) =>

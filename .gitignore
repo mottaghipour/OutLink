@@ -1,0 +1,30 @@
+# .NET build outputs
+**/[Bb]in/
+**/[Oo]bj/
+artifacts/
+
+# Test results and coverage reports
+**/TestResults/
+coverage/
+**/coverage.cobertura.xml
+**/coverage.opencover.xml
+*.coverage
+*.coveragexml
+
+# NuGet package outputs
+*.nupkg
+*.snupkg
+
+# Visual Studio and Rider local files
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Local operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini

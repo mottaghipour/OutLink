@@ -4,7 +4,7 @@
 
 OutLink wraps the Outline Server Management REST API with typed asynchronous methods. Manage server settings, create and revoke access keys, configure data limits, and read usage metrics through one isolated client instance.
 
-The library targets **.NET 10** and uses only built-in .NET APIs. It implements all **20 operations** from the [Outline OpenAPI document](https://github.com/OutlineFoundation/outline-server/blob/master/src/shadowbox/server/api.yml) reviewed on September 13, 2026, including experimental and deprecated operations.
+The library targets **.NET Standard 2.0**, making it compatible with modern .NET applications and other .NET implementations that support .NET Standard 2.0. It implements all **20 operations** from the [Outline OpenAPI document](https://github.com/OutlineFoundation/outline-server/blob/master/src/shadowbox/server/api.yml) reviewed on September 13, 2026, including experimental and deprecated operations.
 
 ## Contents
 
@@ -38,11 +38,17 @@ OutLink manages a server's API. It does not establish a VPN connection or instal
 
 ### Requirements
 
-- .NET 10 SDK to build the project; a compatible .NET 10 application to consume it.
+- A .NET implementation compatible with .NET Standard 2.0.
 - An Outline server's management `apiUrl` and `certSha256` values.
 - Network access from your application to that management endpoint.
 
 ### Reference the library
+
+Install OutLink from NuGet:
+
+```sh
+dotnet add package OutLink --version 1.0.0
+```
 
 To use a local checkout, add a project reference to your application's `.csproj`. Adjust the relative path for your directory structure:
 

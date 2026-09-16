@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 
 namespace OutLink;
@@ -14,8 +15,7 @@ public sealed partial class OutLineClient : IDisposable
             AllowAutoRedirect = false,
             UseCookies = false,
             ServerCertificateCustomValidationCallback = (_, certificate, _, _) =>
-                certificate is not null && CryptographicOperations.FixedTimeEquals(
-                    certificate.GetCertHash(HashAlgorithmName.SHA256), certificateFingerprint)
+                certificate is not null && FixedTimeEquals(GetSha256Fingerprint(certificate.RawData), certificateFingerprint)
         };
 
         HttpClient = new HttpClient(_handler)
@@ -36,8 +36,8 @@ public sealed partial class OutLineClient : IDisposable
     /// <summary>Creates a client using an HTTPS API URL and Outline's certSha256 hex fingerprint.</summary>
     public static OutLineClient New(string apiUrl, string cert)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(apiUrl);
-        ArgumentException.ThrowIfNullOrWhiteSpace(cert);
+        RequireNotNullOrWhiteSpace(apiUrl, nameof(apiUrl));
+        RequireNotNullOrWhiteSpace(cert, nameof(cert));
 
         if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out var uri) ||
             uri.Scheme != Uri.UriSchemeHttps || string.IsNullOrEmpty(uri.Host) ||
@@ -53,9 +53,36 @@ public sealed partial class OutLineClient : IDisposable
 
         // Preserve Outline's secret authentication path when resolving relative endpoints.
         var baseAddress = new Uri(uri.AbsoluteUri.TrimEnd('/') + "/");
-        return new OutLineClient(baseAddress, Convert.FromHexString(cert));
+        return new OutLineClient(baseAddress, ParseHex(cert));
     }
 
     /// <summary>Disposes the client and its underlying handler.</summary>
     public void Dispose() => HttpClient.Dispose();
+
+    private static void RequireNotNullOrWhiteSpace(string? value, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Value cannot be null or whitespace.", parameterName);
+    }
+
+    private static byte[] ParseHex(string value)
+    {
+        var bytes = new byte[value.Length / 2];
+        for (var i = 0; i < bytes.Length; i++)
+            bytes[i] = byte.Parse(value.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+        return bytes;
+    }
+
+    private static bool FixedTimeEquals(byte[] left, byte[] right)
+    {
+        if (left.Length != right.Length) return false;
+        var difference = 0;
+        for (var i = 0; i < left.Length; i++) difference |= left[i] ^ right[i];
+        return difference == 0;
+    }
+
+    private static byte[] GetSha256Fingerprint(byte[] rawCertificate)
+    {
+        using var sha256 = SHA256.Create();
+        return sha256.ComputeHash(rawCertificate);
+    }
 }

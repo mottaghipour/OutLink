@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace OutLink;
 
 /// <summary>A non-negative data transfer allowance in bytes.</summary>
@@ -22,7 +24,8 @@ public sealed record Server
 /// <summary>An access key. Password and AccessUrl contain credentials.</summary>
 public sealed class AccessKey
 {
-    public required string Id { get; init; }
+    [JsonRequired]
+    public string Id { get; init; } = string.Empty;
     public string? Name { get; init; }
     public string? Password { get; init; }
     public int Port { get; init; }

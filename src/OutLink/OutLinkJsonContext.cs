@@ -9,11 +9,11 @@ internal sealed record LimitRequest(DataLimit Limit);
 internal sealed record MetricsSetting(bool MetricsEnabled);
 internal sealed record AccessKeyList
 {
-    public required IReadOnlyList<AccessKey> AccessKeys { get; init; }
+    public IReadOnlyList<AccessKey> AccessKeys { get; init; } = Array.Empty<AccessKey>();
 }
 internal sealed record TransferMetrics
 {
-    public required IReadOnlyDictionary<string, long> BytesTransferredByUserId { get; init; }
+    public IReadOnlyDictionary<string, long> BytesTransferredByUserId { get; init; } = new Dictionary<string, long>();
 }
 internal sealed record ApiError(string? Code, string? Message);
 

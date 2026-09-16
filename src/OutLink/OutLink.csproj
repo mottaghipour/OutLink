@@ -1,9 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<PackageId>OutLink</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>AmirAbbas MottaghiPour</Authors>
+		<Description>.NET client for outline</Description>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
 </Project>

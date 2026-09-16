@@ -9,7 +9,7 @@ public sealed partial class OutLineClient
     /// <summary>Changes the hostname or IP address used in access URLs.</summary>
     public Task SetHostnameForAccessKeysAsync(string hostname, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(hostname);
+        RequireNotNullOrWhiteSpace(hostname, nameof(hostname));
         return SendEmptyAsync(HttpMethod.Put, "server/hostname-for-access-keys",
             Json(new HostnameRequest(hostname), OutLinkJsonContext.Default.HostnameRequest), cancellationToken);
     }
@@ -33,7 +33,7 @@ public sealed partial class OutLineClient
     /// <summary>Renames the server.</summary>
     public Task RenameServerAsync(string name, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        RequireNotNullOrWhiteSpace(name, nameof(name));
         return SendEmptyAsync(HttpMethod.Put, "name",
             Json(new NameRequest(name), OutLinkJsonContext.Default.NameRequest), cancellationToken);
     }
@@ -63,7 +63,7 @@ public sealed partial class OutLineClient
     public Task RenameAccessKeyAsync(string id, string name, CancellationToken cancellationToken = default)
     {
         var path = KeyPath(id) + "/name";
-        ArgumentNullException.ThrowIfNull(name);
+        if (name is null) throw new ArgumentNullException(nameof(name));
         return SendEmptyAsync(HttpMethod.Put, path,
             Json(new NameRequest(name), OutLinkJsonContext.Default.NameRequest), cancellationToken);
     }
@@ -110,7 +110,7 @@ public sealed partial class OutLineClient
 
     private Task SetLimitAsync(string path, long bytes, CancellationToken cancellationToken, string? redirectPath = null)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(bytes);
+        if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
         return SendEmptyAsync(HttpMethod.Put, path,
             Json(new LimitRequest(new DataLimit { Bytes = bytes }), OutLinkJsonContext.Default.LimitRequest),
             cancellationToken, redirectPath);
@@ -120,7 +120,7 @@ public sealed partial class OutLineClient
         CancellationToken cancellationToken)
     {
         if (options?.Port is { } port) ValidatePort(port);
-        if (options?.Limit is { } limit) ArgumentOutOfRangeException.ThrowIfNegative(limit.Bytes, nameof(options));
+        if (options?.Limit is { } limit && limit.Bytes < 0) throw new ArgumentOutOfRangeException(nameof(options));
         return SendJsonAsync(method, path,
             options is null ? null : Json(options, OutLinkJsonContext.Default.CreateAccessKeyOptions),
             OutLinkJsonContext.Default.AccessKey, cancellationToken);
@@ -128,13 +128,12 @@ public sealed partial class OutLineClient
 
     private static void ValidatePort(int port)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(port, 1);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(port, 65535);
+        if (port < 1 || port > 65535) throw new ArgumentOutOfRangeException(nameof(port));
     }
 
     private static string KeyPath(string id)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        RequireNotNullOrWhiteSpace(id, nameof(id));
         // URI processing normalizes dot segments even when escaped.
         if (id is "." or "..") throw new ArgumentException("An access-key identifier cannot be a dot segment.", nameof(id));
         return "access-keys/" + Uri.EscapeDataString(id);
